@@ -1,0 +1,176 @@
+/* This was lifted out of my game Space Fight! and adjusted to suit The Last Pumpkin */
+procedure maintainObstacles(); //display and move active obstacles
+var 
+	obsI    : byte;
+
+begin
+    if maxEntity = 0 then return;
+    for obsI:= 0 to maxEntity do begin 
+        if entities[obsI].active = 1 then begin
+            if entities[obsI].mdelay = 0 then begin
+	            if entities[obsI].xspeed > 0 then begin //is obstacle moving on X
+		            if entities[obsI].dirx = 0 then entities[obsI].x := entities[obsI].x - entities[obsI].xspeed
+                    else entities[obsI].x := entities[obsI].x + entities[obsI].xspeed;
+                end;
+	            if entities[obsI].yspeed > 0 then begin //is obstacle moving on Y
+		            if entities[obsI].diry =  0 then entities[obsI].y := entities[obsI].y - entities[obsI].yspeed
+		            else entities[obsI].y := entities[obsI].y + entities[obsI].yspeed;
+                end;
+	            entities[obsI].mdelay := entities[obsI].mSet;
+	            if(getbit(SPRITE_STRETCH_X,entities[obsI].sprSlot)) = 1 then begin
+	                //update bounding box for large size sprites
+	                entities[obsI].bbx := entities[obsI].x + 48;
+	                entities[obsI].bby := entities[obsI].y + 42;
+	            end else begin
+	                //update bounding box for normal size sprites
+	                entities[obsI].bbx := entities[obsI].x + 24;
+	                entities[obsI].bby := entities[obsI].y + 21;
+	            end;
+	        end else dec(entities[obsI].mdelay);
+	        spritepos(entities[obsI].x,entities[obsI].y,entities[obsI].sprSlot);
+            if entities[obsI].anim = 1 then begin
+	            //Animation handler
+	            if(entities[obsI].aDelay = 0) then begin 
+	                setspriteloc(entities[obsI].sprSlot,(@spriteLoc/64)+entities[obsI].aStart+entities[obsI].aFrame,0);
+	                if entities[obsI].aFrame = entities[obsI].aStop then entities[obsI].aFrame := 0
+                    else inc(entities[obsI].aFrame);
+                    entities[obsI].aDelay := 6;
+                end else dec(entities[obsI].aDelay); 
+            end;
+            if (entities[obsI].x > 344 or entities[obsI].y >= 240) then begin
+	             entities[obsI].active := 0; //off screen y stop, disable entity 
+	             togglebit(SPRITE_BITMASK,entities[obsI].sprSlot,0); //Turn off sprite (this caused SprSlot leak not having it)
+	             if entities[obsI].entity = 2 then cats := 0;
+	        end;
+        end;
+    end;	
+end;
+
+procedure resetObstacles();
+var 
+    obsI :byte;
+begin
+    for obsI := 0 to maxEntity do begin
+        if entities[obsI].active = 1 then begin 
+            entities[obsI].active := 0;
+            togglebit(SPRITE_BITMASK,entities[obsI].sprSlot,0);
+        end;
+    end;
+end;
+
+procedure spawnGhost();
+begin
+    entities[i].color := white;
+	entities[i].fDelay := -1;
+	entities[i].sprSlot := slot;	
+	entities[i].entity := 1; //Ghost
+	entities[i].anim := 0; //animation
+	entities[i].aStart := 0;
+	entities[i].aStop := 0;
+	entities[i].aFrame := 0;
+	entities[i].health := 1; //Not really used in this game
+	entities[i].crash := 24; //standard size sprite
+	entities[i].mSet  := 1; //movement delay default
+	//establish box
+	entities[i].bbx :=  entities[i].x + 24;
+    entities[i].bby := entities[i].y + 21; 
+	spritepos(entities[i].x,entities[i].y,entities[i].sprSlot); //fix ghosting on init
+	setspriteloc(entities[i].sprSlot,ghostSprite,0);
+	sprite_color[entities[i].sprSlot] := entities[i].color;
+	togglebit(SPRITE_MULTICOLOR,entities[i].sprSlot,1);
+	togglebit(SPRITE_BITMASK,entities[i].sprSlot,1);
+	togglebit(SPRITE_STRETCH_X,entities[i].sprSlot,0); //make sure any X,Y stretching is off
+	togglebit(SPRITE_STRETCH_Y,entities[i].sprSlot,0);
+	togglebit(sprite_priority[0],entities[i].sprSlot,1); //go behind characters
+end;
+
+procedure spawnRightCats();
+begin
+    entities[i].color := orange;
+	entities[i].fDelay := -1;
+	entities[i].sprSlot := slot;	
+	entities[i].entity := 2; //Right Cat
+	entities[i].anim := 1; //animation
+	entities[i].aStart := 3;
+	entities[i].aStop := 1;
+	entities[i].aFrame := 0;
+	entities[i].health := 1; //Not really used in this game
+	entities[i].crash := 24; //standard size sprite
+	entities[i].mSet  := 1; //movement delay default
+	//establish box
+	entities[i].bbx :=  entities[i].x + 24;
+    entities[i].bby := entities[i].y + 21; 
+	spritepos(entities[i].x,entities[i].y,entities[i].sprSlot); //fix on init
+	setspriteloc(entities[i].sprSlot,catRightSprite,0);
+	sprite_color[entities[i].sprSlot] := entities[i].color;
+	togglebit(SPRITE_MULTICOLOR,entities[i].sprSlot,1);
+	togglebit(SPRITE_BITMASK,entities[i].sprSlot,1);
+	togglebit(SPRITE_STRETCH_X,entities[i].sprSlot,0); //make sure any X,Y stretching is off
+	togglebit(SPRITE_STRETCH_Y,entities[i].sprSlot,0);
+	togglebit(sprite_priority[0],entities[i].sprSlot,0); //Dont go behind characters
+end;
+
+procedure spawnLeftCats();
+begin
+    entities[i].color := orange;
+	entities[i].fDelay := -1;
+	entities[i].sprSlot := slot;	
+	entities[i].entity := 2; //Left Cat
+	entities[i].anim := 1; //animation
+	entities[i].aStart := 6;
+	entities[i].aStop := 1;
+	entities[i].aFrame := 0;
+	entities[i].health := 1; //Not really used in this game
+	entities[i].crash := 24; //standard size sprite
+	entities[i].mSet  := 1; //movement delay default
+	//establish box
+	entities[i].bbx :=  entities[i].x + 24;
+    entities[i].bby := entities[i].y + 21; 
+	spritepos(entities[i].x,entities[i].y,entities[i].sprSlot); //fix on init
+	setspriteloc(entities[i].sprSlot,catLeftSprite,0);
+	sprite_color[entities[i].sprSlot] := entities[i].color;
+	togglebit(SPRITE_MULTICOLOR,entities[i].sprSlot,1);
+	togglebit(SPRITE_BITMASK,entities[i].sprSlot,1);
+	togglebit(SPRITE_STRETCH_X,entities[i].sprSlot,0); //make sure any X,Y stretching is off
+	togglebit(SPRITE_STRETCH_Y,entities[i].sprSlot,0);
+	togglebit(sprite_priority[0],entities[i].sprSlot,0); //Dont go behind characters
+end;
+
+procedure createObstacle();
+begin
+    if maxEntity = 0 then return;
+	dec(cObsDelay);
+    if cObsDelay > 0 then return;
+    cObsDelay := 100;
+	for i:=0 to maxEntity do begin
+		if entities[i].active = 0 then begin
+			spriteSlot();                
+	        if slot = 255 then return; //no slots
+		    entities[i].active := 1;
+	        entities[i].flash  := 0;
+	        entities[i].diry   := 1;
+            entities[i].xspeed := 1;
+            entities[i].yspeed := 0; 
+            entities[i].mdelay := 0;
+ 
+            if( (Random() & 1) = 0) then begin
+	            entities[i].x    := 343;
+                entities[i].dirx := 0;    
+            end else begin
+	            entities[i].x    := 0;
+	            entities[i].dirx := 2;
+            end;
+	        if ( level > 3 AND cats = 0 ) then begin
+	            entities[i].aDelay := 0;
+	            entities[i].y := 195; //cat y should match player y
+	            if entities[i].dirx = 0 then spawnRightCats()
+                else spawnLeftCats();
+                cats := 1;
+                return; 
+            end; 
+            entities[i].y := (Random() & 85)+90; //ghost y can vary
+            spawnGhost();
+            return;  	
+		end;
+    end;
+end;
