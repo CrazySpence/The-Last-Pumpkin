@@ -31,12 +31,12 @@ var
     catDelay        : byte = 0;
     //Obstacles
     entity_type = record
-	      anim    : byte; //Animated 0 or 1
-	      aStart  : byte; //Mem Location of sprite, only needed for animated entities
+        anim    : byte; //Animated 0 or 1
+        aStart  : byte; //Mem Location of sprite, only needed for animated entities
         aStop   : byte; //Max Frames
         aFrame  : byte; //Counter for animation
         aDelay  : byte; //Slow down
-	      x       : integer;
+        x       : integer;
         y       : byte; //x y pixel pos of entity sprite
         color   : byte; //Main color of entity sprite
         active  : byte; //active or not active, maintainSprite will draw/move based on active/inactive
@@ -53,8 +53,8 @@ var
         sprSlot : byte; //sprite
         entity  : byte; //numerical represenation of type of entity
         oid     : byte; //Player ID of last player to influence the entity (like asteroids) 
-	      bbx     : integer; //bounding box max X
-	      bby     : byte; //bounding box max Y
+        bbx     : integer; //bounding box max X
+        bby     : byte; //bounding box max Y
     end;
     maxEntity : byte;
     entities  : array[6] of entity_type;
